@@ -101,7 +101,7 @@ print('Parsing annotation files')
 img_path = sys.argv[1]
 bufsize = 0
 
-for idx,img_name in enumerate(sorted(os.listdir(img_path))):
+for idx, img_name in enumerate(sorted(os.listdir(img_path))):
     print(img_name)
     filepath = os.path.join(img_path,img_name)
     img = cv2.imread(filepath)
@@ -147,7 +147,6 @@ for idx,img_name in enumerate(sorted(os.listdir(img_path))):
         P_regr = P_regr / C.std_scaling
 
         for ii in range(P_cls.shape[1]):
-
             if np.max(P_cls[0,ii,:]) < 0.5 or np.argmax(P_cls[0,ii,:]) == (P_cls.shape[2] - 1):
                 continue
 

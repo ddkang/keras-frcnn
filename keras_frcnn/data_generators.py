@@ -384,12 +384,10 @@ def get_anchor_gt(all_img_data, class_mapping, class_count, C, backend, mode='tr
 
         for img_data in all_img_data:
             try:
-
                 if C.balanced_classes and sample_selector.skip_sample_for_balanced_class(img_data):
                     continue
 
                 # read in image, and optionally add augmentation
-
                 if mode == 'train':
                     img_data_aug, x_img = data_augment.augment(img_data, C, augment=True)
                 else:
