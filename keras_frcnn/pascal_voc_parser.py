@@ -78,4 +78,4 @@ def get_data(input_path):
                 cv2.imshow('img', img)
                 cv2.waitKey(0)
 
-    return all_imgs,classes_count,class_mapping
+    return all_imgs, classes_count, class_mapping

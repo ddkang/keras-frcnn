@@ -383,53 +383,48 @@ def get_anchor_gt(all_img_data, class_mapping, class_count, C, backend, mode='tr
             random.shuffle(all_img_data)
 
         for img_data in all_img_data:
-            try:
-                if C.balanced_classes and sample_selector.skip_sample_for_balanced_class(img_data):
-                    continue
-
-                # read in image, and optionally add augmentation
-                if mode == 'train':
-                    img_data_aug, x_img = data_augment.augment(img_data, C, augment=True)
-                else:
-                    img_data_aug, x_img = data_augment.augment(img_data, C, augment=False)
-
-                (width, height) = (img_data_aug['width'], img_data_aug['height'])
-                (rows, cols, _) = x_img.shape
-
-                assert cols == width
-                assert rows == height
-
-                # get image dimensions for resizing
-                (resized_width, resized_height) = get_new_img_size(width, height, C.im_size)
-
-                # resize the image so that smalles side is length = 600px
-                x_img = cv2.resize(x_img, (resized_width, resized_height), interpolation=cv2.INTER_CUBIC)
-
-                # calculate the output map size based on the network architecture
-                (output_width, output_height) = get_img_output_length(resized_width, resized_height)
-                try:
-                    x_rois, y_rpn_cls, y_rpn_regr, y_class_num, y_class_regr = calcY(C, class_mapping, img_data_aug, width, height, resized_width, resized_height)
-                except:
-                    continue
-                # Zero-center by mean pixel
-                x_img = x_img.astype(np.float32)
-                x_img[:, :, 0] -= 103.939
-                x_img[:, :, 1] -= 116.779
-                x_img[:, :, 2] -= 123.68
-
-                x_img = np.transpose(x_img, (2, 0, 1))
-                x_img = np.expand_dims(x_img, axis=0)
-
-                y_rpn_regr[:,y_rpn_regr.shape[1]/2:,:,:] *= C.std_scaling
-                y_class_regr[:,y_class_regr.shape[1]/2:,:] *= C.std_scaling
-
-                if backend == 'tf':
-                    x_img = np.transpose(x_img, (0, 2, 3, 1))
-                    y_rpn_cls = np.transpose(y_rpn_cls, (0, 2, 3, 1))
-                    y_rpn_regr = np.transpose(y_rpn_regr, (0, 2, 3, 1))
-
-                yield [np.copy(x_img), np.copy(x_rois)], [np.copy(y_rpn_cls), np.copy(y_rpn_regr), np.copy(y_class_num), np.copy(y_class_regr)]
-
-            except Exception as e:
-                print(e)
+            if C.balanced_classes and sample_selector.skip_sample_for_balanced_class(img_data):
                 continue
+
+            # read in image, and optionally add augmentation
+            if mode == 'train':
+                img_data_aug, x_img = data_augment.augment(img_data, C, augment=True)
+            else:
+                img_data_aug, x_img = data_augment.augment(img_data, C, augment=False)
+
+            (width, height) = (img_data_aug['width'], img_data_aug['height'])
+            (rows, cols, _) = x_img.shape
+
+            assert cols == width
+            assert rows == height
+
+            # get image dimensions for resizing
+            (resized_width, resized_height) = get_new_img_size(width, height, C.im_size)
+
+            # resize the image so that smalles side is length = 600px
+            x_img = cv2.resize(x_img, (resized_width, resized_height), interpolation=cv2.INTER_CUBIC)
+
+            # calculate the output map size based on the network architecture
+            (output_width, output_height) = get_img_output_length(resized_width, resized_height)
+            try:
+                x_rois, y_rpn_cls, y_rpn_regr, y_class_num, y_class_regr = calcY(C, class_mapping, img_data_aug, width, height, resized_width, resized_height)
+            except:
+                continue
+            # Zero-center by mean pixel
+            x_img = x_img.astype(np.float32)
+            x_img[:, :, 0] -= 103.939
+            x_img[:, :, 1] -= 116.779
+            x_img[:, :, 2] -= 123.68
+
+            x_img = np.transpose(x_img, (2, 0, 1))
+            x_img = np.expand_dims(x_img, axis=0)
+
+            y_rpn_regr[:,y_rpn_regr.shape[1]/2:,:,:] *= C.std_scaling
+            y_class_regr[:,y_class_regr.shape[1]/2:,:] *= C.std_scaling
+
+            if backend == 'tf':
+                x_img = np.transpose(x_img, (0, 2, 3, 1))
+                y_rpn_cls = np.transpose(y_rpn_cls, (0, 2, 3, 1))
+                y_rpn_regr = np.transpose(y_rpn_regr, (0, 2, 3, 1))
+
+            yield [np.copy(x_img), np.copy(x_rois)], [np.copy(y_rpn_cls), np.copy(y_rpn_regr), np.copy(y_class_num), np.copy(y_class_regr)]
