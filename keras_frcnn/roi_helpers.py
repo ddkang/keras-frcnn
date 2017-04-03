@@ -32,7 +32,7 @@ def apply_regr(x, y, w, h, tx, ty, tw, th):
 def non_max_suppression_fast(boxes, probs, overlapThresh=0.95):
     # if there are no boxes, return an empty list
     if len(boxes) == 0:
-        return []
+        return [], []
 
     # grab the coordinates of the bounding boxes
     x1 = boxes[:, 0]
@@ -119,6 +119,7 @@ def rpn_to_roi(rpn_layer, regr_layer, C, dim_ordering, use_regr = True):
         (rows, cols) = rpn_layer.shape[1:3]
     curr_layer = 0
 
+    print anchor_sizes, anchor_ratios, rows, cols
     for anchor_size in anchor_sizes:
         for anchor_ratio in anchor_ratios:
 
@@ -133,6 +134,52 @@ def rpn_to_roi(rpn_layer, regr_layer, C, dim_ordering, use_regr = True):
                 regr = np.transpose(regr,(2,0,1))
 
             curr_layer += 1
+
+            tmp = []
+            for jy in xrange(rows):
+                for ix in xrange(cols):
+                    tmp.append( (rpn[jy,ix], jy, ix) )
+            tmp.sort(reverse=True)
+            tmp2 = filter(lambda x: x[0] > 0.5, tmp)
+            if len(tmp2) > 500:
+                tmp = tmp2
+            else:
+                tmp = tmp[0:500]
+            for p, jy, ix in tmp:
+                (tx, ty, tw, th) = regr[:, jy, ix]
+
+                x1 = ix - anchor_x/2
+                y1 = jy - anchor_y/2
+
+                w = anchor_x
+                h = anchor_y
+
+                if use_regr:
+                    (x1, y1, w, h) = apply_regr(x1, y1, w, h, tx, ty, tw, th)
+
+                w = max(4, w)
+                h = max(4, h)
+
+                x2 = x1 + w
+                y2 = y1 + h
+
+                # box must start inside image
+                x1 = max(x1, 0)
+                y1 = max(y1, 0)
+
+                #box must end inside image
+                x2 = min(x2, cols-1)
+                y2 = min(y2, rows-1)
+
+                if x2 - x1 < 1:
+                    continue
+                if y2 - y1 < 1:
+                    continue
+
+                all_boxes.append((x1, y1, x2, y2))
+                all_probs.append(rpn[jy, ix])
+            continue
+
             for jy in xrange(rows):
                 for ix in xrange(cols):
                     if rpn[jy,ix] > 0.50:
@@ -160,7 +207,7 @@ def rpn_to_roi(rpn_layer, regr_layer, C, dim_ordering, use_regr = True):
                         #box must end inside image
                         x2 = min(x2, cols-1)
                         y2 = min(y2, rows-1)
-                        
+
                         if x2 - x1 < 1:
                             continue
                         if y2 - y1 < 1:
