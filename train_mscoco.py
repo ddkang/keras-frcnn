@@ -86,7 +86,9 @@ except:
     sys.exit(0)
 
 optimizer = Adam(1e-5, decay=0.0)
-model.compile(optimizer=optimizer, loss=[losses.rpn_loss_cls(num_anchors), losses.rpn_loss_regr(num_anchors), losses.class_loss_cls, losses.class_loss_regr(C.num_rois,len(classes_count)-1)], metrics={'dense_class_{}_loss'.format(len(classes_count)): 'accuracy'})
+model.compile(optimizer=optimizer,
+              loss=[losses.rpn_loss_cls(num_anchors), losses.rpn_loss_regr(num_anchors), losses.class_loss_cls, losses.class_loss_regr(C.num_rois,len(classes_count)-1)],
+              metrics={'dense_class_{}_loss'.format(len(classes_count)): 'accuracy'})
 
 nb_epochs = 100
 

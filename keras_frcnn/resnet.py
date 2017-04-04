@@ -163,7 +163,6 @@ def conv_block_td(input_tensor, kernel_size, filters, stage, block, strides=(2, 
     return x
 
 def nn_base(input_tensor=None, trainable=False):
-
     # Determine proper input shape
     if K.image_dim_ordering() == 'th':
         input_shape = (3, None, None)
@@ -217,7 +216,6 @@ def classifier_layers(x, trainable=False):
     return x
 
 def rpn(base_layers,num_anchors):
-
     x = Convolution2D(512, (3, 3), padding = 'same', activation='relu', kernel_initializer='normal',name='rpn_conv1')(base_layers)
 
     x_class = Convolution2D(num_anchors, (1, 1), activation='sigmoid', kernel_initializer='uniform',name='rpn_out_class')(x)
@@ -226,7 +224,6 @@ def rpn(base_layers,num_anchors):
     return [x_class, x_regr]
 
 def classifier(base_layers, input_rois, num_rois, nb_classes = 21, trainable=False):
-
     pooling_regions = 7
 
     out_roi_pool = RoiPoolingConv(pooling_regions, num_rois)([base_layers,input_rois])

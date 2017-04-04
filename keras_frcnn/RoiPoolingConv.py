@@ -44,7 +44,6 @@ class RoiPoolingConv(Layer):
             return None, self.num_rois, self.pool_size, self.pool_size, self.nb_channels
 
     def call(self, x, mask=None):
-
         assert(len(x) == 2)
 
         img = x[0]
