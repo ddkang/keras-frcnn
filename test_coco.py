@@ -101,8 +101,12 @@ print('Parsing annotation files')
 img_path = sys.argv[1]
 bufsize = 0
 
+
+coco_data = []
 for idx, img_name in enumerate(sorted(os.listdir(img_path))):
-    print(img_name)
+    coco_id = int(img_name.split('.')[0].split('_')[-1])
+    print(img_name, coco_id)
+
     filepath = os.path.join(img_path,img_name)
     img = cv2.imread(filepath)
 
@@ -171,7 +175,14 @@ for idx, img_name in enumerate(sorted(os.listdir(img_path))):
         bbox = np.array(bboxes[key])
 
         new_boxes, new_probs = roi_helpers.non_max_suppression_fast(bbox, np.array(probs[key]), overlapThresh=0.5)
-        print key, new_boxes, new_probs
+
+        if key != 'bg':
+            for bbox, prob in zip(new_boxes, new_probs):
+                coco_data.append({'image_id': coco_id,
+                                  'category_id': int(key),
+                                  'bbox': list(bbox),
+                                  'score': float(prob)})
+        print coco_data[-1]
         '''for jk in range(new_boxes.shape[0]):
             (x1,y1,x2,y2) = new_boxes[jk,:]
 
@@ -191,3 +202,6 @@ for idx, img_name in enumerate(sorted(os.listdir(img_path))):
             #cv2.putText(img_scaled,textLabel,textOrg,cv2.FONT_HERSHEY_SIMPLEX,1,(0,0,0),1)
     cv2.imshow('img',img_scaled)
     cv2.waitKey(0)'''
+
+with open('coco_val.json', 'w') as fout:
+    json.dump(coco_data, fout)
